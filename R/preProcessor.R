@@ -49,7 +49,6 @@ preProcessor<-function() {
       for(indice in nrow(referti.out)) {
         lunghezze <-  lapply (referti.out[[colonnaTesto]],  function(x) length(str_split(string = x,pattern = " ")[[1]]))
         lunghezze <- unlist( lunghezze )
-        browser()
         posizioni <- which( lunghezze>param$number.of.words )
         referti.out <<- referti.out[posizioni,]
       }
