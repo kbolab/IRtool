@@ -7,7 +7,7 @@
 #'              \item \code{getData() } restituisce i dati processati
 #'              \item \code{apply.filter() } applica un filtro ai referti
 #'              }
-#' @import stringr tm
+#' @import stringr tm quanteda
 #' @export
 #' @examples \dontrun{
 #' # -----------------------------------------------
@@ -19,6 +19,13 @@
 #' 
 #' # Rimuovi i documenti con meno di 10 parole 
 #' obj.pp$apply.filter( filter="remove.little.document", param=list("number.of.words" = 10 )  )
+#' 
+#' # Converti tutti i caratteri in minuscolo
+#'  obj$apply.filter(filter="convert.to.lower")
+#'  
+#'  # Escludi caratteri UTF
+#'  obj$apply.filter("remove.nonvalid.UTF8")
+#'  
 #' 
 #' #prendi il risultato
 #' aaa <- obj.pp$getData()
@@ -52,6 +59,29 @@ preProcessor<-function() {
         posizioni <- which( lunghezze>param$number.of.words )
         referti.out <<- referti.out[posizioni,]
       }
+    }
+    if(filter=="convert.to.lower"){
+      minuscole <- lapply(X = referti.out[[colonnaTesto]], function(x) str_to_lower(string = x) )
+      minuscole <- unlist(minuscole)
+      referti.out[[colonnaTesto]] <<- minuscole
+    }
+    
+    if (filter== "remove.nonvalid.UTF8"){
+      caratteri <- lapply(X = referti.out[[colonnaTesto]], function(x) iconv(x, "UTF-8", "UTF-8", sub='') )
+      caratteri <- unlist(caratteri)
+      referti.out[[colonnaTesto]] <<- caratteri
+    }
+    
+    if (filter== "remove.stopwords"){
+      toks <- lapply(X = referti.out[[colonnaTesto]], function(x) tokenize(x, removePunct = TRUE) )
+      toks2 <- lapply(X = toks, function(x) removeFeatures(x,  c(stopwords("italian"))) )
+      stringa <- list()
+      for (i in 1:nrow(referti.out)){
+        stringa[[i]] <- paste(as.array(unlist(toks2[[i]])), collapse = " ")
+      }
+      stringa2 <- unlist(stringa)
+      referti.out[[colonnaTesto]] <<- stringa2
+
     }
   }   
   #=================================================================================
