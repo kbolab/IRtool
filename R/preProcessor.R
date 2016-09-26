@@ -7,7 +7,7 @@
 #'              \item \code{getData() } restituisce i dati processati
 #'              \item \code{apply.filter() } applica un filtro ai referti
 #'              }
-#' @import stringr tm quanteda
+#' @import stringr tm 
 #' @export
 #' @examples \dontrun{
 #' # -----------------------------------------------
@@ -21,10 +21,10 @@
 #' obj.pp$apply.filter( filter="remove.little.document", param=list("number.of.words" = 10 )  )
 #' 
 #' # Converti tutti i caratteri in minuscolo
-#'  obj$apply.filter(filter="convert.to.lower")
+#'  obj.pp$apply.filter(filter="convert.to.lower")
 #'  
 #'  # Escludi caratteri UTF
-#'  obj$apply.filter("remove.nonvalid.UTF8")
+#'  obj.pp$apply.filter("remove.nonvalid.UTF8")
 #'  
 #' 
 #' #prendi il risultato
@@ -40,6 +40,9 @@ preProcessor<-function() {
   referti.in<-c()
   referti.out<-c()
   colonnaTesto<-c()
+  stop.char<-c()
+  stop.words<-c()
+  
   #=================================================================================
   # load.data.frame
   #=================================================================================    
@@ -73,15 +76,8 @@ preProcessor<-function() {
     }
     
     if (filter== "remove.stopwords"){
-      toks <- lapply(X = referti.out[[colonnaTesto]], function(x) tokenize(x, removePunct = TRUE) )
-      toks2 <- lapply(X = toks, function(x) removeFeatures(x,  c(stopwords("italian"))) )
-      stringa <- list()
-      for (i in 1:nrow(referti.out)){
-        stringa[[i]] <- paste(as.array(unlist(toks2[[i]])), collapse = " ")
-      }
-      stringa2 <- unlist(stringa)
-      referti.out[[colonnaTesto]] <<- stringa2
-
+      referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) x<-stri_replace_all_fixed(str = x,replacement = " ",stop.char,vectorize_all = FALSE) )
+      referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) { uppa<- str_split(string = x,pattern = c(" "))[[1]]; x<-str_c(uppa[!(uppa %in% stop.words)],collapse = " ")  }  )
     }
   }   
   #=================================================================================
@@ -100,6 +96,9 @@ preProcessor<-function() {
     referti.in<<-c()
     referti.out<<-c()
     colonnaTesto<<-c()
+    stop.char<<-c(".",";",":","'","\"",",","?","!","\n","\r","(",")","[","]")
+    stop.words<<-c("a","e","i","o","il","lo","la","gli","le","di","da","in","su","per","tra","fra","d","un","uno","una","degli","delle","dei","l","si")
+    
   }
   costructor();
   #================================================================================= 
