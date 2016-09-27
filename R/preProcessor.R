@@ -40,6 +40,7 @@ preProcessor<-function() {
   referti.in<-c()
   referti.out<-c()
   colonnaTesto<-c()
+  array.occor<-c()
   stop.char<-c()
   stop.words<-c()
   
@@ -79,14 +80,21 @@ preProcessor<-function() {
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) x<-stri_replace_all_fixed(str = x,replacement = " ",stop.char,vectorize_all = FALSE) )
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) { uppa<- str_split(string = x,pattern = c(" "))[[1]]; x<-str_c(uppa[!(uppa %in% stop.words)],collapse = " ")  }  )
     }
-  }   
+  }
+
+  # a2 <- table(  str_split( string = paste(aa$referti.out$descrizione ,collapse  = " "),pattern = " ")   )
   #=================================================================================
   # getData
   #=================================================================================   
-  getData<-function( ) {
+  getData<-function( array.occor.thrs = 5 , keep.old = FALSE) {
+    if(keep.old == FALSE ) {
+      array.occor <<- table(  str_split( string = paste( referti.out[[colonnaTesto]] ,collapse  = " "),pattern = " ")   )
+      array.occor <<- array.occor[which(array.occor > array.occor.thrs)]
+    }
     return(  list(
       "referti.out"=referti.out,
-      "referti.in"=referti.in
+      "referti.in"=referti.in,
+      "array.occor"=array.occor
     )   )
   }  
   #=================================================================================
@@ -96,6 +104,7 @@ preProcessor<-function() {
     referti.in<<-c()
     referti.out<<-c()
     colonnaTesto<<-c()
+    array.occor<<-c()
     stop.char<<-c(".",";",":","'","\"",",","?","!","\n","\r","(",")","[","]")
     stop.words<<-c("a","e","i","o","il","lo","la","gli","le","di","da","in","su","per","tra","fra","d","un","uno","una","degli","delle","dei","l","si")
     
