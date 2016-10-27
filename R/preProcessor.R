@@ -7,7 +7,7 @@
 #'              \item \code{getData() } restituisce i dati processati
 #'              \item \code{apply.filter() } applica un filtro ai referti
 #'              }
-#' @import stringr tm 
+#' @import stringr tm stringi 
 #' @export
 #' @examples \dontrun{
 #' # -----------------------------------------------
