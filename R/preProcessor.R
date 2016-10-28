@@ -80,9 +80,6 @@ preProcessor<-function() {
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) x<-stri_replace_all_fixed(str = x,replacement = " ",stop.char,vectorize_all = FALSE) )
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) { uppa<- str_split(string = x,pattern = c(" "))[[1]]; x<-str_c(uppa[!(uppa %in% stop.words)],collapse = " ")  }  )
     }
-    if (filter== "remove.whitespace"){
-      referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], FUN = function(x) str_replace_all(string = x, pattern = " ", replacement = ""))
-    }
   }
 
   # a2 <- table(  str_split( string = paste(aa$referti.out$descrizione ,collapse  = " "),pattern = " ")   )
