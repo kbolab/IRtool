@@ -90,7 +90,7 @@ preProcessor<-function() {
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) gsub('\\b\\w{1,2}\\b','',x))
     }
     
-    if(filter== "extract.root"){
+    if(filter== "stemming"){
       for (i in 1:nrow(referti.out)){
         stringa <- str_split(referti.out[[colonnaTesto]][i], pattern = " ")
         stringa2 <- unlist(stringa)
