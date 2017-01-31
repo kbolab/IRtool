@@ -7,7 +7,7 @@
 #'              \item \code{getData() } restituisce i dati processati
 #'              \item \code{apply.filter() } applica un filtro ai referti
 #'              }
-#' @import stringr tm stringi 
+#' @import stringr tm stringi SnowballC 
 #' @export
 #' @examples \dontrun{
 #' # -----------------------------------------------
@@ -80,23 +80,27 @@ preProcessor<-function() {
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) x<-stri_replace_all_fixed(str = x,replacement = " ",stop.char,vectorize_all = FALSE) )
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) { uppa<- str_split(string = x,pattern = c(" "))[[1]]; x<-str_c(uppa[!(uppa %in% stop.words)],collapse = " ")  }  )
     }
-    
-    if (filter== "remove.punctuation"){
-      referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) gsub("[?.;!¡¿·',:]", "", x) )
-    }
+
     
     if (filter== "remove.numbers"){
       referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) gsub("\\d", "", x) )
     }
     
     if(filter== "remove.shortWord"){
-      referti.out[[colonnaTesto]] <- lapply(X = referti.out[[colonnaTesto]], function(x) gsub('\\b\\w{1,2}\\b','',x))
+      referti.out[[colonnaTesto]] <<- lapply(X = referti.out[[colonnaTesto]], function(x) gsub('\\b\\w{1,2}\\b','',x))
     }
     
-    if(filter== "remove.specialCharacter"){
-      referti.out[[colonnaTesto]] <- lapply(X = referti.out[[colonnaTesto]], function(x) gsub("[^[:alnum:][:blank:]+?&/\\-]", "", x))
+    if(filter== "extract.root"){
+      for (i in 1:nrow(referti.out)){
+        stringa <- str_split(referti.out[[colonnaTesto]][i], pattern = " ")
+        stringa2 <- unlist(stringa)
+        radice <- wordStem(words = stringa2, language = 'italian')
+        referti.out[[colonnaTesto]][i] <<- paste(radice, sep=" ", collapse=" ")
+      }
+      
     }
     
+
   }
 
   # a2 <- table(  str_split( string = paste(aa$referti.out$descrizione ,collapse  = " "),pattern = " ")   )
@@ -105,7 +109,6 @@ preProcessor<-function() {
   #=================================================================================   
   getData<-function( array.occor.thrs = 5 , keep.old = FALSE) {
     if(keep.old == FALSE ) {
-      browser()
       array.occor <<- table(  str_split( string = paste( referti.out[[colonnaTesto]] ,collapse  = " "),pattern = " ")   )
       array.occor <<- array.occor[which(array.occor > array.occor.thrs)]
     }
@@ -123,8 +126,11 @@ preProcessor<-function() {
     referti.out<<-c()
     colonnaTesto<<-c()
     array.occor<<-c()
-    stop.char<<-c(".",";",":","'","\"",",","?","!","\n","\r","(",")","[","]")
-    stop.words<<-c("a","e","i","o","il","lo","la","gli","le","di","da","in","su","per","tra","fra","d","un","uno","una","degli","delle","dei","l","si", "al")
+    # stop.char<<-c(".",";",":","'","\"",",","?","!","\n","\r","(",")","[","]")
+    stop.char<<-c(".",";",":","'","\"",",","?","!","\n","\r","(",")","[","]","¡","¿","·","^","%","~","+","/","&",
+                  ">","<","-","_","=","`","|","@","*","\\","$","}")
+    stop.words<<-c("a","e","i","o","il","lo","la","gli","le","di","da","in","su","per","tra","fra","d","un","uno",
+                   "una","degli","delle","dei","l","si", "al")
     
   }
   costructor();
