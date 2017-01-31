@@ -97,12 +97,38 @@ preProcessor<-function() {
         radice <- wordStem(words = stringa2, language = 'italian')
         referti.out[[colonnaTesto]][i] <<- paste(radice, sep=" ", collapse=" ")
       }
-      
     }
-    
-
   }
+  #=================================================================================
+  # get.td.idf
+  #=================================================================================   
+  get.tf.idf<-function( ) {
+    aaa <- getData()
+    tf <- list()
+    for(i in seq(1,length(aaa$referti.out[[1]])))  {
+      freq.parole <- table(  str_split( string = paste( referti.out[[colonnaTesto]][i] ,collapse  = " "),pattern = " ")   )
+      term.freq <- freq.parole[ !(names(freq.parole) %in% c(stop.words,"")) ]
+      term.freq <- term.freq/sum(term.freq)
+      tf[[i]]<-term.freq
+    }
+    # calcola il tdf
+    
+    idf <- table(names(unlist(tf)))
+    idf <- 1+log(idf)
+    
+    tf.idf<-tf
+    # for(i in seq(1,length(tf))) {
+    #   for(parola in names(tf[[i]] )) {
+    #     tf.idf[[i]][parola] <- tf[[i]][parola]* idf[parola]
+    #   } 
+    # }
 
+    return(list(
+      "tf"=tf,
+      "idf"=idf,
+      "tf.idf"=tf.idf
+    ))
+  }  
   # a2 <- table(  str_split( string = paste(aa$referti.out$descrizione ,collapse  = " "),pattern = " ")   )
   #=================================================================================
   # getData
@@ -111,6 +137,7 @@ preProcessor<-function() {
     if(keep.old == FALSE ) {
       array.occor <<- table(  str_split( string = paste( referti.out[[colonnaTesto]] ,collapse  = " "),pattern = " ")   )
       array.occor <<- array.occor[which(array.occor > array.occor.thrs)]
+      array.occor <- array.occor[ !(names(array.occor) %in% c(stop.words,"") ) ]
     }
     return(  list(
       "referti.out"=referti.out,
@@ -130,7 +157,8 @@ preProcessor<-function() {
     stop.char<<-c(".",";",":","'","\"",",","?","!","\n","\r","(",")","[","]","¡","¿","·","^","%","~","+","/","&",
                   ">","<","-","_","=","`","|","@","*","\\","$","}")
     stop.words<<-c("a","e","i","o","il","lo","la","gli","le","di","da","in","su","per","tra","fra","d","un","uno",
-                   "una","degli","delle","dei","l","si", "al")
+                   "una","degli","delle","dei","l","si", "al","ev","x","cc","cm","che","co","in","del",
+                   "ed","con","aa","ab")
     
   }
   costructor();
@@ -138,6 +166,7 @@ preProcessor<-function() {
   return(list(
     "load.data.frame"=load.data.frame,
     "getData"=getData,
-    "apply.filter"=apply.filter
+    "apply.filter"=apply.filter,
+    "get.tf.idf"=get.tf.idf
   ))
 }
