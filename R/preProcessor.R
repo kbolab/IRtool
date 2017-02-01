@@ -7,7 +7,7 @@
 #'              \item \code{getData() } restituisce i dati processati
 #'              \item \code{apply.filter() } applica un filtro ai referti
 #'              }
-#' @import stringr tm stringi SnowballC 
+#' @import stringr tm stringi SnowballC progress
 #' @export
 #' @examples \dontrun{
 #' # -----------------------------------------------
@@ -101,27 +101,63 @@ preProcessor<-function() {
   }
   #=================================================================================
   # get.td.idf
+  # min.rel.thres = la frequenza minima relativa per cui un termine deve comparire fra
+  # i documenti per non essere scartatao
   #=================================================================================   
-  get.tf.idf<-function( ) {
+  get.tf.idf<-function( min.rel.thres = .001) {
     aaa <- getData()
     tf <- list()
-    for(i in seq(1,length(aaa$referti.out[[1]])))  {
+    
+    numero.documenti <- length(aaa$referti.out[[1]])
+    cat("\nDocuments: ",numero.documenti)
+    cat("\n Building tf :\n")
+    
+    # ---------------------------------------------------------------
+    # calcola TF 
+    # ---------------------------------------------------------------
+    pb <- progress_bar$new(total = numero.documenti)
+    for(i in seq(1,numero.documenti))  {
       freq.parole <- table(  str_split( string = paste( referti.out[[colonnaTesto]][i] ,collapse  = " "),pattern = " ")   )
       term.freq <- freq.parole[ !(names(freq.parole) %in% c(stop.words,"")) ]
       term.freq <- term.freq/sum(term.freq)
       tf[[i]]<-term.freq
+      pb$tick()
     }
-    # calcola il tdf
+    cat("Done\n")
     
+    cat("Building tf :\n")
+    
+    # ---------------------------------------------------------------
+    # calcola IDF 
+    # ---------------------------------------------------------------
     idf <- table(names(unlist(tf)))
-    idf <- 1+log(idf)
+    cat("terms before pruning: ",length(idf),"  \n")
     
+    # togli quelli che non sono abbastanza frequenti (rumore)
+    idf <- idf[which(idf>=min.rel.thres*numero.documenti)]  
+    
+    # passa al logaritmo
+    idf <- 1+log(idf)
+    cat("terms after pruning: ",length(idf),"  \n")
+    cat("Done \n")
+    
+    # ---------------------------------------------------------------
+    # calcola TD-IDF 
+    # ---------------------------------------------------------------
+    cat("Building tf-idf :\n")
+    pb <- progress_bar$new(total = numero.documenti)
     tf.idf<-tf
-    # for(i in seq(1,length(tf))) {
-    #   for(parola in names(tf[[i]] )) {
-    #     tf.idf[[i]][parola] <- tf[[i]][parola]* idf[parola]
-    #   } 
-    # }
+    # ora Riduci la lista dei tf ai soli che sono restati nell'idf dopo la scrematura
+    for(i in seq(1,numero.documenti))  {
+      # pulisci il tf lasciando solo quelli che non sono stati filtrati
+      tf[[i]]<-tf[[i]][ names(tf[[i]] ) %in% names(idf) ]
+      # calcola il prodotto tf-idf
+      nuovoArr <- tapply(c(tf[[i]],idf),names(c(tf[[i]],idf)),prod)
+      nuovoArr <- nuovoArr[names(nuovoArr) %in% names(tf[[i]])]
+      tf.idf[[i]] <- nuovoArr
+      pb$tick()
+    }
+    cat("Done\n")
 
     return(list(
       "tf"=tf,
