@@ -52,6 +52,16 @@ preProcessor<-function() {
     referti.out <<- data.frame.referti
     colonnaTesto <<- colonnaTestoReferto
   }
+  
+  ##########################################################################
+  # create occorrence table
+  #########################################################################
+  calculate.occor <- function(array.occor.thrs = 5 , keep.old = FALSE){
+    array.occor <<- table(  str_split( string = paste( referti.out[[colonnaTesto]] ,collapse  = " "),pattern = " ")   )
+    array.occor <<- array.occor[which(array.occor > array.occor.thrs)]
+    array.occor <- array.occor[ !(names(array.occor) %in% c(stop.words,"") ) ]
+  }
+  
   #=================================================================================
   # run
   #=================================================================================   
@@ -105,6 +115,7 @@ preProcessor<-function() {
   # i documenti per non essere scartatao
   #=================================================================================   
   get.tf.idf<-function( min.rel.thres = .001) {
+    
     aaa <- getData()
     tf <- list()
     
@@ -113,7 +124,8 @@ preProcessor<-function() {
     cat("\n Building tf :\n")
     
     # ---------------------------------------------------------------
-    # calcola TF 
+    # calcola TF: per ciascun referto calcola la frequenza di ogni singolo termine eliminando 
+    # gli spazi
     # ---------------------------------------------------------------
     pb <- progress_bar$new(total = numero.documenti)
     for(i in seq(1,numero.documenti))  {
@@ -128,7 +140,7 @@ preProcessor<-function() {
     cat("Building tf :\n")
     
     # ---------------------------------------------------------------
-    # calcola IDF 
+    # calcola IDF:
     # ---------------------------------------------------------------
     idf <- table(names(unlist(tf)))
     cat("terms before pruning: ",length(idf),"  \n")
@@ -169,12 +181,10 @@ preProcessor<-function() {
   #=================================================================================
   # getData
   #=================================================================================   
-  getData<-function( array.occor.thrs = 5 , keep.old = FALSE) {
-    if(keep.old == FALSE ) {
-      array.occor <<- table(  str_split( string = paste( referti.out[[colonnaTesto]] ,collapse  = " "),pattern = " ")   )
-      array.occor <<- array.occor[which(array.occor > array.occor.thrs)]
-      array.occor <- array.occor[ !(names(array.occor) %in% c(stop.words,"") ) ]
-    }
+  getData<-function( ) {
+    
+      array.occor <<- calculate.occor()
+    
     return(  list(
       "referti.out"=referti.out,
       "referti.in"=referti.in,
