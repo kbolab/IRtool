@@ -108,6 +108,33 @@ preProcessor<-function() {
         referti.out[[colonnaTesto]][i] <<- paste(radice, sep=" ", collapse=" ")
       }
     }
+    
+    if (filter== "find.replace.synonym" ){
+      # Calcola la tabella delle occorrenze per ciascun termine
+      table.occor <- calculate.occor()
+      table.occor <- as.data.frame(table.occor)
+      varNames <- as.character(table.occor$Var1)
+      LengthvarNames <- length(varNames)
+      similarityJaccard <- array(data = c(0), dim = LengthvarNames*LengthvarNames)
+      similarityJaccardNrow <- LengthvarNames
+      #load virtual similarity C function
+      browser()
+      dyn.load("/home/kboaria/PROGETTI/InformationRetrieval/IRtool/R/similarityMatrix.so")
+      
+      similarityMat <- .C(   "similarityMatrix", as.character (varNames), as.integer (LengthvarNames),
+                             as.integer(similarityJaccardNrow), as.array(similarityJaccard))
+      
+      JaccardMatrix <- array (similarityMat[[4]], dim=c(LengthvarNames,LengthvarNames))
+      rownames(JaccardMatrix) <- c(varNames)
+      colnames(JaccardMatrix) <- c(varNames)
+      
+      browser()
+      
+      rownames(similarity.jaccard) <- c(as.character(table.occor$Var1))
+      colnames(similarity.jaccard) <- c(as.character(table.occor$Var1))
+      # crea la matrice delle similitudini tramite il coefficiente di jaccard
+
+    }
   }
   #=================================================================================
   # get.td.idf
