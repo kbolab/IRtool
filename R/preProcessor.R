@@ -118,7 +118,7 @@ preProcessor<-function() {
       similarityJaccard <- array(data = c(0), dim = LengthvarNames*LengthvarNames)
       similarityJaccardNrow <- LengthvarNames
       #load virtual similarity C function
-      browser()
+      
       dyn.load("/home/kboaria/PROGETTI/InformationRetrieval/IRtool/R/similarityMatrix.so")
       
       similarityMat <- .C(   "similarityMatrix", as.character (varNames), as.integer (LengthvarNames),
@@ -128,12 +128,27 @@ preProcessor<-function() {
       rownames(JaccardMatrix) <- c(varNames)
       colnames(JaccardMatrix) <- c(varNames)
       
+      
+      
+      # Essendo la matrice simmetrica elimina la parte superiore
+      JaccardMatrix[upper.tri(JaccardMatrix)] <- NA
+      
+      # Extract indices of row and column of Jaccard matrix
+      indice01 <- which(JaccardMatrix!=0 & JaccardMatrix<=0.1, arr.ind = T)
+      
+      indice01 <- cbind(indice01, "Occorrenze"=NA)
+      for (i in 1: nrow(indice01)){
+        indice01[i,3] <- table.occor$Freq[indice01[i,1]]
+      }
+      
+      
+      
       browser()
       
-      rownames(similarity.jaccard) <- c(as.character(table.occor$Var1))
-      colnames(similarity.jaccard) <- c(as.character(table.occor$Var1))
-      # crea la matrice delle similitudini tramite il coefficiente di jaccard
-
+      indice015 <- which(JaccardMatrix!=0 & JaccardMatrix<=0.15, arr.ind = T)
+      
+      
+      
     }
   }
   #=================================================================================
@@ -231,7 +246,7 @@ preProcessor<-function() {
                   ">","<","-","_","=","`","|","@","*","\\","$","}")
     stop.words<<-c("a","e","i","o","il","lo","la","gli","le","di","da","in","su","per","tra","fra","d","un","uno",
                    "una","degli","delle","dei","l","si", "al","ev","x","cc","cm","che","co","in","del",
-                   "ed","con","aa","ab")
+                   "ed","con","aa","ab","non","della")
     
   }
   costructor();
